@@ -18,6 +18,18 @@ Usaage:
 
     α> awsm exec 'ps aux | grep unicorn'
 
+    α> awsm exec top 
+
+
+Session:
+
+Create a session with a single instance. All `exec` commands will be sent to that instance.
+
+    α> awsm session
+    α> awsm exec ls -la /var/log/application.log    # commands executed directly against the selected instance
+    α> awsm exec tail -f /var/log/application.log
+    α> awsm session clear
+
 Build in commands
 
     α> awsm diskspace # Executes df -h
