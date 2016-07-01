@@ -1,5 +1,7 @@
-if [ -f $AWSM_HOME/session ]; then
-  . $AWSM_HOME/session
+awsm_session_file=$AWSM_HOME/session
+
+if [ -f $awsm_session_file ]; then
+  . $awsm_session_file
 fi
 
 function select_instance {
@@ -14,7 +16,12 @@ function ssh_exec {
     local instance_id=$(select_instance)
   fi
 
-  $SSH_BIN $AWSM_SSH_USER@$instance_id -t $@
+  local sudo_command=""
+  if [ -n "$AWSM_EXEC_SUDO_USER" ]; then
+    local sudo_command="sudo -i -u $AWSM_EXEC_SUDO_USER"
+  fi
+
+  $SSH_BIN $AWSM_SSH_USER@$instance_id -t $sudo_command $@
 }
 
 function diskspace {
@@ -31,8 +38,8 @@ function exec {
 
 function session {
   if [ "$1" == "clear" ]; then
-    echo "" > $AWSM_HOME/session;
+    echo "" > $awsm_session_file;
   else
-    echo "AWSM_INSTANCE_IP=$(select_instance)" > $AWSM_HOME/session
+    echo "AWSM_INSTANCE_IP=$(select_instance)" > $awsm_session_file
   fi
 }

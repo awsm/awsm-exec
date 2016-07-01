@@ -10,18 +10,24 @@ Top example:
 
 [![asciicast](https://asciinema.org/a/795rli65ie4f10yi53mmehadn.png)](https://asciinema.org/a/795rli65ie4f10yi53mmehadn)
 
-Install:
+# Install:
 
     α> cp awsm-exec.sh ~/.awsm/plugins
 
-Usaage:
+# Config:
+
+To setup awsm-exec to use sudo for executing commands add the following to `~/.awsm/config`.
+
+    AWSM_EXEC_SUDO_USER=user_name
+
+## Usaage:
 
     α> awsm exec 'ps aux | grep unicorn'
 
     α> awsm exec top 
 
 
-Session:
+## Session:
 
 Create a session with a single instance. All `exec` commands will be sent to that instance.
 
