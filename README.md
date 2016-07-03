@@ -6,10 +6,6 @@ Exec example:
 
 [![asciicast](https://asciinema.org/a/3st3ptwww27t13vqgjgylc9wt.png)](https://asciinema.org/a/3st3ptwww27t13vqgjgylc9wt)
 
-Top example:
-
-[![asciicast](https://asciinema.org/a/795rli65ie4f10yi53mmehadn.png)](https://asciinema.org/a/795rli65ie4f10yi53mmehadn)
-
 # Install:
 
     α> cp awsm-exec.sh ~/.awsm/plugins
@@ -26,6 +22,7 @@ To setup awsm-exec to use sudo for executing commands add the following to `~/.a
 
     α> awsm exec top 
 
+[![asciicast](https://asciinema.org/a/795rli65ie4f10yi53mmehadn.png)](https://asciinema.org/a/795rli65ie4f10yi53mmehadn)
 
 ## Session:
 
@@ -36,10 +33,23 @@ Create a session with a single instance. All `exec` commands will be sent to tha
     α> awsm exec tail -f /var/log/application.log
     α> awsm session clear
 
-Build in commands
+[![asciicast](https://asciinema.org/a/19m5alcpm6adabel39rq3ol7b.png)](https://asciinema.org/a/19m5alcpm6adabel39rq3ol7b)
+
+## Built in commands
 
     α> awsm diskspace # Executes df -h
 
     α> awsm memory    # Executes vmstat
 
+## Rails Helpers
+
+Executes rails commands on the instance selected. Note: You may need to setup the sudo user (as described above) in your config file. 
+
+The path to the directory the app lives in must be specified.
+
+    α> awsm rails c /path/to/app # Executes rails console in the director specified. 
+
+[![asciicast](https://asciinema.org/a/37k5p2egdf1y1npmhdq1c36cl.png)](https://asciinema.org/a/37k5p2egdf1y1npmhdq1c36cl)
+    
+    α> awsm rails db /path/to/app # Executes rails console in the director specified. 
 
