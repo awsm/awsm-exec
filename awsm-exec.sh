@@ -1,4 +1,7 @@
+: ${AWSM_PROFILE_FILE=.awsm-profile}
+
 awsm_session_file=$AWSM_HOME/session
+. $AWSM_PROFILE_FILE
 
 if [ -f $awsm_session_file ]; then
   . $awsm_session_file
@@ -32,13 +35,23 @@ function rails_check_app_dir {
 }
 
 function rails_console {
-  rails_check_app_dir $1
-  ssh_exec "bash -c 'cd $1; bundle exec rails console'"
+  if [ -n $AWSM_RAILS_DEPLOY_DIR ]; then
+    local rails_deploy_dir=$AWSM_RAILS_DEPLOY_DIR
+  else
+    rails_check_app_dir $1
+    local rails_deploy_dir=$1
+  fi
+  ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails console'"
 }
 
 function rails_db {
-  rails_check_app_dir $1
-  ssh_exec "bash -c 'cd $1; bundle exec rails db'"
+  if [ -n $AWSM_RAILS_DEPLOY_DIR ]; then
+    local rails_deploy_dir=$AWSM_RAILS_DEPLOY_DIR
+  else
+    rails_check_app_dir $1
+    local rails_deploy_dir=$1
+  fi
+  ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails db'"
 }
 
 function diskspace {
