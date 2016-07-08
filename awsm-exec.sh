@@ -1,18 +1,20 @@
+set -e
+
 : ${AWSM_PROFILE_FILE=.awsm-profile}
 
-awsm_session_file=$AWSM_HOME/session
 . $AWSM_PROFILE_FILE
 
+awsm_session_file=$AWSM_HOME/session
 if [ -f $awsm_session_file ]; then
   . $awsm_session_file
 fi
 
-function select_instance {
+function _select_instance {
   local instance_line=$(instances | $FUZZY_FILTER)
   echo $(echo $instance_line | read_inputs)
 }
 
-function ssh_exec {
+function _ssh_exec {
   if [ -n "$AWSM_INSTANCE_IP" ]; then
     local instance_id=$AWSM_INSTANCE_IP;
   else
@@ -24,66 +26,80 @@ function ssh_exec {
     local sudo_command="sudo -i -u $AWSM_EXEC_SUDO_USER"
   fi
 
+  echo $sudo_command $@
   $SSH_BIN $AWSM_SSH_USER@$instance_id -t $sudo_command $@
 }
 
-function rails_check_app_dir {
+function _rails_check_app_dir {
   if [ -z "$1" ]; then
     echo 'Rails app directory must be supplied'
     exit 1
   fi
 }
 
-function rails_console {
-  if [ -n $AWSM_RAILS_DEPLOY_DIR ]; then
-    local rails_deploy_dir=$AWSM_RAILS_DEPLOY_DIR
+function _rails_deploy_dir {
+  if [ -n "$AWSM_APP_DEPLOY_DIR" ]; then
+    echo $AWSM_APP_DEPLOY_DIR
+    local app_dir=$AWSM_APP_DEPOY_DIR
   else
-    rails_check_app_dir $1
-    local rails_deploy_dir=$1
+    local app_dir=$1
   fi
-  ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails console'"
+  echo $app_dir
 }
 
-function rails_db {
-  if [ -n $AWSM_RAILS_DEPLOY_DIR ]; then
-    local rails_deploy_dir=$AWSM_RAILS_DEPLOY_DIR
-  else
-    rails_check_app_dir $1
-    local rails_deploy_dir=$1
-  fi
-  ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails db'"
+function _rails_console {
+  local rails_deploy_dir=$(_rails_deploy_dir $1)
+  _rails_check_app_dir $rails_deploy_dir
+  _ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails c'"
 }
+
+function _rails_db {
+  local rails_deploy_dir=$(_rails_deploy_dir $1)
+  _rails_check_app_dir $rails_deploy_dir
+  _ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails db'"
+}
+
+## PUBLIC FUNCTIONS
 
 function diskspace {
-  ssh_exec 'df -h'
+  _ssh_exec 'df -h'
 }
 
 function memory {
-  ssh_exec 'vmstat'
+  _ssh_exec 'vmstat'
 }
 
 function exec {
-  ssh_exec "$@"
+  _ssh_exec "$@"
 }
-
+# TODO - Make session directory dependent?
 function session {
   if [ "$1" == "clear" ]; then
     echo "" > $awsm_session_file;
   else
-    echo "AWSM_INSTANCE_IP=$(select_instance)" > $awsm_session_file
+    echo "AWSM_INSTANCE_IP=$(_select_instance)" > $awsm_session_file
   fi
+}
+
+function app_exec {
+  if [ -z $AWSM_APP_DEPLOY_DIR ]; then
+    echo 'AWSM_APP_DEPLOY_DIR must be set in .awsm-profile or globally'
+    exit 1
+  fi
+
+  ssh_exec "bash -c 'cd $AWSM_APP_DEPLOY_DIR; $@'"
 }
 
 function rails {
   case "$1" in
     console)
-      rails_console $2
+      _rails_console $2
       ;;
     c)
-      rails_console $2
+      _rails_console $2
       ;;
     db)
-      rails_db $2
+      _rails_db $2
       ;;
     *)
       echo "Only rails console, rails c, or rails db supported. '$@' unknown"
