@@ -91,7 +91,7 @@ function app_exec {
     exit 1
   fi
 
-  ssh_exec "bash -c 'cd $AWSM_APP_DEPLOY_DIR; $@'"
+  _ssh_exec "bash -c 'cd $AWSM_APP_DEPLOY_DIR; $@'"
 }
 
 function rails {
