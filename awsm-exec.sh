@@ -1,8 +1,11 @@
 set -e
+set +u
 
 : ${AWSM_PROFILE_FILE=.awsm-profile}
 
-. $AWSM_PROFILE_FILE
+if [ -f $AWSM_PROFILE_FILE ]; then
+  . $AWSM_PROFILE_FILE
+fi
 
 awsm_session_file=$AWSM_HOME/session
 if [ -f $awsm_session_file ]; then
@@ -18,7 +21,7 @@ function _ssh_exec {
   if [ -n "$AWSM_INSTANCE_IP" ]; then
     local instance_id=$AWSM_INSTANCE_IP;
   else
-    local instance_id=$(select_instance)
+    local instance_id=$(_select_instance)
   fi
 
   local sudo_command=""
@@ -26,7 +29,6 @@ function _ssh_exec {
     local sudo_command="sudo -i -u $AWSM_EXEC_SUDO_USER"
   fi
 
-  echo $sudo_command $@
   $SSH_BIN $AWSM_SSH_USER@$instance_id -t $sudo_command $@
 }
 
@@ -74,8 +76,10 @@ function exec {
 }
 # TODO - Make session directory dependent?
 function session {
-  if [ "$1" == "clear" ]; then
-    echo "" > $awsm_session_file;
+  if [ $# == 1 ]; then
+    if [ $1 == "clear" ]; then
+      echo "" > $awsm_session_file;
+    fi
   else
     echo "AWSM_INSTANCE_IP=$(_select_instance)" > $awsm_session_file
   fi
@@ -91,6 +95,12 @@ function app_exec {
 }
 
 function rails {
+
+  if [ $# -lt 1 ]; then
+    echo 'Need to specify a command (either console, c or db)'
+    exit 1
+  fi
+
   case "$1" in
     console)
       _rails_console $2
