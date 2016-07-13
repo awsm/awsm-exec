@@ -1,10 +1,10 @@
 set -e
 set +u
 
-: ${AWSM_PROFILE_FILE=.awsm-profile}
+: ${AWSM_SESSION_FILE=.awsm-session}
 
-if [ -f $AWSM_PROFILE_FILE ]; then
-  . $AWSM_PROFILE_FILE
+if [ -f $AWSM_SESSION_FILE ]; then
+  . $AWSM_SESSION_FILE
 fi
 
 awsm_session_file=$AWSM_HOME/session
@@ -18,7 +18,7 @@ function _select_instance {
 }
 
 function _ssh_exec {
-  if [ -n "$AWSM_INSTANCE_IP" ]; then
+  if [ -n "${AWSM_INSTANCE_IP-}" ]; then
     local instance_id=$AWSM_INSTANCE_IP;
   else
     local instance_id=$(_select_instance)
@@ -116,3 +116,4 @@ function rails {
       exit 1
   esac
 }
+set -u
