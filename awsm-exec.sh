@@ -2,9 +2,14 @@ set -e
 set +u
 
 : ${AWSM_SESSION_FILE=.awsm-session}
+: ${AWSM_EXEC_FILE=.awsm-exec}
 
 if [ -f $AWSM_SESSION_FILE ]; then
   . $AWSM_SESSION_FILE
+fi
+
+if [ -f $AWSM_EXEC_FILE ]; then
+  . $AWSM_EXEC_FILE
 fi
 
 awsm_session_file=$AWSM_HOME/session
@@ -33,7 +38,7 @@ function _ssh_exec {
 }
 
 function _rails_check_app_dir {
-  if [ -z "$1" ]; then
+  if [ -z "${1-}" ]; then
     echo 'Rails app directory must be supplied'
     exit 1
   fi
@@ -41,8 +46,7 @@ function _rails_check_app_dir {
 
 function _rails_deploy_dir {
   if [ -n "$AWSM_APP_DEPLOY_DIR" ]; then
-    echo $AWSM_APP_DEPLOY_DIR
-    local app_dir=$AWSM_APP_DEPOY_DIR
+    local app_dir=$AWSM_APP_DEPLOY_DIR
   else
     local app_dir=$1
   fi
@@ -50,13 +54,13 @@ function _rails_deploy_dir {
 }
 
 function _rails_console {
-  local rails_deploy_dir=$(_rails_deploy_dir $1)
+  local rails_deploy_dir=$(_rails_deploy_dir ${1-})
   _rails_check_app_dir $rails_deploy_dir
   _ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails c'"
 }
 
 function _rails_db {
-  local rails_deploy_dir=$(_rails_deploy_dir $1)
+  local rails_deploy_dir=$(_rails_deploy_dir ${1-})
   _rails_check_app_dir $rails_deploy_dir
   _ssh_exec "bash -c 'cd $rails_deploy_dir; bundle exec rails db'"
 }
@@ -103,13 +107,13 @@ function rails {
 
   case "$1" in
     console)
-      _rails_console $2
+      _rails_console ${2-}
       ;;
     c)
-      _rails_console $2
+      _rails_console ${2-}
       ;;
     db)
-      _rails_db $2
+      _rails_db ${2-}
       ;;
     *)
       echo "Only rails console, rails c, or rails db supported. '$@' unknown"
